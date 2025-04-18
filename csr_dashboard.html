@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSR Work in India Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --background-color: #f8f9fa;
+            --card-background: #ffffff;
+            --text-primary: #2c3e50;
+            --text-secondary: #7f8c8d;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .dashboard-container {
+            padding: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .dashboard-header h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            background-color: var(--card-background);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+        }
+
+        .chart-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .filter-container {
+            background-color: var(--card-background);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .insight-card {
+            background-color: var(--card-background);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            height: 100%;
+        }
+
+        .metric-card {
+            background-color: var(--card-background);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            height: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .download-btn {
+            margin-bottom: 15px;
+            background-color: var(--secondary-color);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+
+        .download-btn:hover {
+            background-color: var(--primary-color);
+        }
+
+        .form-select {
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .map-container {
+            height: 500px;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .map-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .sector-analysis {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .sector-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .sector-legend {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        .sector-chart-container {
+            flex: 1;
+            min-height: 300px;
+        }
+
+        .insight-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 3px solid var(--secondary-color);
+        }
+
+        .insight-item i {
+            color: var(--secondary-color);
+            margin-right: 8px;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        /* Layout adjustments */
+        .metrics-row {
+            margin-bottom: 20px;
+        }
+
+        .main-charts-row {
+            margin-bottom: 20px;
+        }
+
+        .map-row {
+            margin-bottom: 20px;
+        }
+
+        .analysis-row {
+            margin-bottom: 20px;
+        }
+
+        .data-row {
+            margin-bottom: 20px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 10px;
+            }
+            
+            .metric-card {
+                margin-bottom: 15px;
+            }
+            
+            .chart-container {
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>CSR Work in India Dashboard (2018-2023)</h1>
+        </div>
+        
+        <!-- Metrics Overview -->
+        <div class="row metrics-row">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value" id="total-csr">₹0 Cr</div>
+                    <div class="metric-label">Total CSR Investment</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value" id="avg-growth">0%</div>
+                    <div class="metric-label">Average Annual Growth</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value" id="max-csr">₹0 Cr</div>
+                    <div class="metric-label">Maximum CSR Investment</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value" id="projects">0</div>
+                    <div class="metric-label">Total Projects</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filters -->
+        <div class="filter-container">
+            <h4 class="section-title">Filters</h4>
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="year-range" class="form-label">Year Range</label>
+                    <select id="year-range" class="form-select">
+                        <option value="all">All Years</option>
+                        <option value="2018-2020">2018-2020</option>
+                        <option value="2021-2023">2021-2023</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="chart-type" class="form-label">Chart Type</label>
+                    <select id="chart-type" class="form-select">
+                        <option value="bar">Bar Chart</option>
+                        <option value="line">Line Chart</option>
+                        <option value="area">Area Chart</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="sector-filter" class="form-label">Sector</label>
+                    <select id="sector-filter" class="form-select">
+                        <option value="all">All Sectors</option>
+                        <option value="education">Education</option>
+                        <option value="healthcare">Healthcare</option>
+                        <option value="environment">Environment</option>
+                        <option value="rural">Rural Development</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="analysis-type" class="form-label">Analysis Type</label>
+                    <select id="analysis-type" class="form-select">
+                        <option value="investment">Investment</option>
+                        <option value="growth">Growth Rate</option>
+                        <option value="projects">Projects</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Charts -->
+        <div class="row main-charts-row">
+            <div class="col-md-8">
+                <div class="chart-container">
+                    <h4 class="section-title">Investment Trend Analysis</h4>
+                    <div id="main-chart" style="width: 100%; height: 400px;"></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="chart-container">
+                    <h4 class="section-title">Sector Distribution</h4>
+                    <div id="pie-chart" style="width: 100%; height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- State-wise CSR Map -->
+        <div class="row map-row">
+            <div class="col-md-12">
+                <div class="chart-container">
+                    <h4 class="section-title">Geographic Distribution</h4>
+                    <div class="map-container">
+                        <div id="csr-map" style="width: 100%; height: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sector-wise Analysis -->
+        <div class="row analysis-row">
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <div class="sector-analysis">
+                        <div class="sector-header">
+                            <h4 class="section-title">Sector-wise Investment Analysis</h4>
+                            <div class="sector-legend">
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #2ecc71;"></div>
+                                    <span>Education</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #3498db;"></div>
+                                    <span>Healthcare</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #e67e22;"></div>
+                                    <span>Environment</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #9b59b6;"></div>
+                                    <span>Rural Dev</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sector-chart-container">
+                            <div id="sector-chart" style="width: 100%; height: 100%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h4 class="section-title">Growth Analysis</h4>
+                    <div id="growth-chart" style="width: 100%; height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table and Insights -->
+        <div class="row data-row">
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h4 class="section-title">Detailed Data</h4>
+                    <button class="btn download-btn" onclick="exportData()">
+                        <i class="fas fa-download"></i> Export Data
+                    </button>
+                    <div class="table-container">
+                        <table class="table table-striped" id="data-table">
+                            <thead>
+                                <tr>
+                                    <th>State</th>
+                                    <th>Total Investment (₹ Cr)</th>
+                                    <th>Number of Projects</th>
+                                    <th>Top Sector</th>
+                                    <th>Growth Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body">
+                                <!-- Table data will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="insight-card">
+                    <h4 class="section-title">Key Insights</h4>
+                    <div id="insights-list">
+                        <!-- Insights will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        const years = [2018, 2019, 2020, 2021, 2022, 2023];
+        const stateData = {
+            'Maharashtra': {
+                investment: [1200, 1350, 1500, 1650, 1800, 1950],
+                projects: [450, 480, 520, 550, 580, 620],
+                sectors: {
+                    'Education': 35,
+                    'Healthcare': 25,
+                    'Environment': 20,
+                    'Rural Development': 20
+                },
+                location: {lat: 19.7515, lon: 75.7139}
+            },
+            'Karnataka': {
+                investment: [950, 1050, 1150, 1250, 1350, 1450],
+                projects: [380, 400, 420, 450, 480, 510],
+                sectors: {
+                    'Education': 30,
+                    'Healthcare': 30,
+                    'Environment': 25,
+                    'Rural Development': 15
+                },
+                location: {lat: 15.3173, lon: 75.7139}
+            },
+            'Tamil Nadu': {
+                investment: [850, 950, 1050, 1150, 1250, 1350],
+                projects: [350, 370, 390, 420, 450, 480],
+                sectors: {
+                    'Education': 40,
+                    'Healthcare': 25,
+                    'Environment': 20,
+                    'Rural Development': 15
+                },
+                location: {lat: 11.1271, lon: 78.6569}
+            },
+            'Gujarat': {
+                investment: [750, 850, 950, 1050, 1150, 1250],
+                projects: [320, 340, 360, 390, 420, 450],
+                sectors: {
+                    'Education': 25,
+                    'Healthcare': 35,
+                    'Environment': 25,
+                    'Rural Development': 15
+                },
+                location: {lat: 22.2587, lon: 71.1924}
+            },
+            'Delhi': {
+                investment: [650, 750, 850, 950, 1050, 1150],
+                projects: [300, 320, 340, 370, 400, 430],
+                sectors: {
+                    'Education': 45,
+                    'Healthcare': 20,
+                    'Environment': 20,
+                    'Rural Development': 15
+                },
+                location: {lat: 28.6139, lon: 77.2090}
+            }
+        };
+
+        // Calculate growth rates
+        function calculateGrowthRates(data) {
+            return data.map((value, index) => 
+                index === 0 ? 0 : ((value - data[index-1]) / data[index-1]) * 100);
+        }
+
+        // Update metrics
+        function updateMetrics() {
+            const totalCSR = Object.values(stateData).reduce((sum, state) => 
+                sum + state.investment[state.investment.length-1], 0);
+            const totalProjects = Object.values(stateData).reduce((sum, state) => 
+                sum + state.projects[state.projects.length-1], 0);
+            const maxCSR = Math.max(...Object.values(stateData).map(state => 
+                state.investment[state.investment.length-1]));
+            const avgGrowth = Object.values(stateData).reduce((sum, state) => {
+                const growth = calculateGrowthRates(state.investment);
+                return sum + growth.reduce((a,b) => a+b) / (growth.length-1);
+            }, 0) / Object.keys(stateData).length;
+
+            document.getElementById('total-csr').textContent = `₹${totalCSR.toFixed(2)} Cr`;
+            document.getElementById('avg-growth').textContent = `${avgGrowth.toFixed(1)}%`;
+            document.getElementById('max-csr').textContent = `₹${maxCSR.toFixed(2)} Cr`;
+            document.getElementById('projects').textContent = totalProjects;
+        }
+
+        // Update insights
+        function updateInsights() {
+            const insights = [
+                `Maharashtra leads with ₹${stateData['Maharashtra'].investment[stateData['Maharashtra'].investment.length-1]} Cr investment in 2023`,
+                `Education sector receives the highest CSR funding across all states`,
+                `Total CSR investment has grown by ${((stateData['Maharashtra'].investment[stateData['Maharashtra'].investment.length-1] - stateData['Maharashtra'].investment[0]) / stateData['Maharashtra'].investment[0] * 100).toFixed(1)}% since 2018`,
+                `Karnataka shows the highest growth rate in number of projects`,
+                `Healthcare sector receives significant funding in Gujarat and Karnataka`,
+                `Delhi focuses more on education-related CSR initiatives`,
+                `Environment-related projects have seen steady growth across all states`,
+                `Rural development projects are gaining momentum in Maharashtra and Tamil Nadu`
+            ];
+            
+            const insightsList = document.getElementById('insights-list');
+            insightsList.innerHTML = insights.map(insight => `
+                <div class="insight-item">
+                    <i class="fas fa-chart-line"></i> ${insight}
+                </div>
+            `).join('');
+        }
+
+        // Update data table
+        function updateTable() {
+            const tableBody = document.getElementById('table-body');
+            tableBody.innerHTML = Object.entries(stateData).map(([state, data]) => {
+                const growth = calculateGrowthRates(data.investment);
+                const avgGrowth = growth.reduce((a,b) => a+b) / (growth.length-1);
+                const topSector = Object.entries(data.sectors).reduce((a,b) => b[1] > a[1] ? b : a)[0];
+                
+                return `
+                    <tr>
+                        <td>${state}</td>
+                        <td>₹${data.investment[data.investment.length-1].toFixed(2)} Cr</td>
+                        <td>${data.projects[data.projects.length-1]}</td>
+                        <td>${topSector}</td>
+                        <td>${avgGrowth.toFixed(1)}%</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Export data function
+        function exportData() {
+            const data = [
+                ['State', 'Total Investment (₹ Cr)', 'Number of Projects', 'Top Sector', 'Growth Rate'],
+                ...Object.entries(stateData).map(([state, data]) => {
+                    const growth = calculateGrowthRates(data.investment);
+                    const avgGrowth = growth.reduce((a,b) => a+b) / (growth.length-1);
+                    const topSector = Object.entries(data.sectors).reduce((a,b) => b[1] > a[1] ? b : a)[0];
+                    
+                    return [
+                        state,
+                        data.investment[data.investment.length-1].toFixed(2),
+                        data.projects[data.projects.length-1],
+                        topSector,
+                        avgGrowth.toFixed(1) + '%'
+                    ];
+                })
+            ];
+
+            const csvContent = data.map(row => row.join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'csr_data.csv';
+            link.click();
+        }
+
+        // Create map
+        function createMap() {
+            const mapData = [{
+                type: 'scattergeo',
+                mode: 'markers+text',
+                lat: Object.values(stateData).map(state => state.location.lat),
+                lon: Object.values(stateData).map(state => state.location.lon),
+                text: Object.entries(stateData).map(([state, data]) => 
+                    `${state}<br>₹${data.investment[data.investment.length-1].toFixed(2)} Cr`),
+                textposition: 'top center',
+                textfont: {
+                    family: 'Arial, sans-serif',
+                    size: 12,
+                    color: '#000000'
+                },
+                marker: {
+                    size: Object.values(stateData).map(state => 
+                        Math.sqrt(state.investment[state.investment.length-1]) * 0.8),
+                    color: Object.keys(stateData).map(state => getStateColor(state)),
+                    opacity: 0.8,
+                    line: {
+                        color: '#000000',
+                        width: 1
+                    },
+                    symbol: 'circle'
+                },
+                name: 'CSR Investment',
+                hoverinfo: 'text',
+                hovertemplate: '%{text}<extra></extra>'
+            }];
+
+            const layout = {
+                title: {
+                    text: 'Geographic Distribution of CSR Investment',
+                    font: {
+                        size: 16,
+                        family: 'Arial, sans-serif',
+                        color: '#2c3e50'
+                    },
+                    y: 0.95
+                },
+                geo: {
+                    scope: 'asia',
+                    resolution: 50,
+                    lonaxis: {
+                        range: [67, 98]
+                    },
+                    lataxis: {
+                        range: [6, 38]
+                    },
+                    center: {
+                        lon: 82,
+                        lat: 23
+                    },
+                    projection: {
+                        type: 'mercator',
+                        scale: 3.5
+                    },
+                    showland: true,
+                    showocean: true,
+                    showlakes: true,
+                    showcountries: true,
+                    landcolor: 'rgb(243, 243, 243)',
+                    oceancolor: 'rgb(204, 229, 255)',
+                    lakecolor: 'rgb(204, 229, 255)',
+                    countrycolor: 'rgb(204, 204, 204)',
+                    countrywidth: 0.5,
+                    subunitwidth: 0.5,
+                    showframe: true,
+                    framecolor: '#2c3e50',
+                    framewidth: 1,
+                    showcoastlines: true,
+                    coastlinecolor: '#2c3e50',
+                    coastlinewidth: 1
+                },
+                margin: {
+                    l: 0,
+                    r: 0,
+                    t: 30,
+                    b: 0
+                },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                showlegend: false,
+                height: 500,
+                width: null,
+                autosize: true
+            };
+
+            const config = {
+                responsive: true,
+                displayModeBar: false,
+                scrollZoom: true
+            };
+
+            Plotly.newPlot('csr-map', mapData, layout, config);
+        }
+
+        // Update charts based on filters
+        function updateCharts() {
+            const yearRange = document.getElementById('year-range').value;
+            const chartType = document.getElementById('chart-type').value;
+            const sectorFilter = document.getElementById('sector-filter').value;
+            const analysisType = document.getElementById('analysis-type').value;
+
+            let startYear = 0;
+            let endYear = years.length;
+            
+            if (yearRange === '2018-2020') {
+                endYear = 3;
+            } else if (yearRange === '2021-2023') {
+                startYear = 3;
+            }
+
+            const filteredYears = years.slice(startYear, endYear);
+
+            // Main chart
+            const traces = Object.entries(stateData).map(([state, data]) => ({
+                x: filteredYears,
+                y: data.investment.slice(startYear, endYear),
+                name: state,
+                type: chartType,
+                line: {color: getStateColor(state)},
+                fill: chartType === 'area' ? 'tonexty' : 'none'
+            }));
+
+            Plotly.newPlot('main-chart', traces, {
+                title: 'CSR Investment Trend Over Time',
+                xaxis: {title: 'Year'},
+                yaxis: {title: 'Investment (₹ Cr)'},
+                hovermode: 'x unified'
+            });
+
+            // Pie chart
+            const sectorData = Object.entries(stateData).reduce((acc, [state, data]) => {
+                Object.entries(data.sectors).forEach(([sector, value]) => {
+                    acc[sector] = (acc[sector] || 0) + value;
+                });
+                return acc;
+            }, {});
+
+            Plotly.newPlot('pie-chart', [{
+                values: Object.values(sectorData),
+                labels: Object.keys(sectorData),
+                type: 'pie',
+                marker: {colors: ['#2ecc71', '#3498db', '#e67e22', '#9b59b6']}
+            }], {
+                title: 'Sector-wise Distribution'
+            });
+
+            // Sector chart
+            if (sectorFilter !== 'all') {
+                const sectorTraces = Object.entries(stateData).map(([state, data]) => ({
+                    x: filteredYears,
+                    y: data.investment.slice(startYear, endYear).map(inv => 
+                        inv * (data.sectors[sectorFilter] / 100)),
+                    name: state,
+                    type: 'bar',
+                    marker: {color: getStateColor(state)},
+                    hovertemplate: '%{y:.2f} Cr<extra></extra>'
+                }));
+
+                Plotly.newPlot('sector-chart', sectorTraces, {
+                    title: {
+                        text: `${sectorFilter} Sector Investment by State`,
+                        font: {
+                            size: 14,
+                            color: '#2c3e50'
+                        }
+                    },
+                    xaxis: {
+                        title: 'Year',
+                        tickangle: -45
+                    },
+                    yaxis: {
+                        title: 'Investment (₹ Cr)',
+                        tickformat: '.2f'
+                    },
+                    barmode: 'group',
+                    hovermode: 'x unified',
+                    showlegend: true,
+                    legend: {
+                        orientation: 'h',
+                        y: -0.2
+                    }
+                });
+            } else {
+                // Show all sectors when 'all' is selected
+                const sectorTraces = Object.entries(stateData).map(([state, data]) => {
+                    const traces = [];
+                    Object.entries(data.sectors).forEach(([sector, percentage], index) => {
+                        traces.push({
+                            x: filteredYears,
+                            y: data.investment.slice(startYear, endYear).map(inv => 
+                                inv * (percentage / 100)),
+                            name: `${state} - ${sector}`,
+                            type: 'bar',
+                            marker: {color: getSectorColor(sector)},
+                            hovertemplate: '%{y:.2f} Cr<extra></extra>'
+                        });
+                    });
+                    return traces;
+                }).flat();
+
+                Plotly.newPlot('sector-chart', sectorTraces, {
+                    title: {
+                        text: 'Sector-wise Investment Distribution',
+                        font: {
+                            size: 14,
+                            color: '#2c3e50'
+                        }
+                    },
+                    xaxis: {
+                        title: 'Year',
+                        tickangle: -45
+                    },
+                    yaxis: {
+                        title: 'Investment (₹ Cr)',
+                        tickformat: '.2f'
+                    },
+                    barmode: 'stack',
+                    hovermode: 'x unified',
+                    showlegend: true,
+                    legend: {
+                        orientation: 'h',
+                        y: -0.2
+                    }
+                });
+            }
+
+            // Growth chart
+            const growthTraces = Object.entries(stateData).map(([state, data]) => ({
+                x: filteredYears,
+                y: calculateGrowthRates(data.investment).slice(startYear, endYear),
+                name: state,
+                type: 'line',
+                line: {color: getStateColor(state)}
+            }));
+
+            Plotly.newPlot('growth-chart', growthTraces, {
+                title: 'Annual Growth Rate by State',
+                xaxis: {title: 'Year'},
+                yaxis: {title: 'Growth Rate (%)'}
+            });
+
+            updateMetrics();
+            updateInsights();
+            updateTable();
+            createMap();
+        }
+
+        // Helper function to get state colors
+        function getStateColor(state) {
+            const colors = {
+                'Maharashtra': '#2ecc71',
+                'Karnataka': '#3498db',
+                'Tamil Nadu': '#e67e22',
+                'Gujarat': '#9b59b6',
+                'Delhi': '#1abc9c'
+            };
+            return colors[state];
+        }
+
+        // Helper function to get sector colors
+        function getSectorColor(sector) {
+            const colors = {
+                'Education': '#2ecc71',
+                'Healthcare': '#3498db',
+                'Environment': '#e67e22',
+                'Rural Development': '#9b59b6'
+            };
+            return colors[sector];
+        }
+
+        // Add event listeners
+        document.getElementById('year-range').addEventListener('change', updateCharts);
+        document.getElementById('chart-type').addEventListener('change', updateCharts);
+        document.getElementById('sector-filter').addEventListener('change', updateCharts);
+        document.getElementById('analysis-type').addEventListener('change', updateCharts);
+
+        // Initial render
+        updateCharts();
+    </script>
+</body>
+</html> 
